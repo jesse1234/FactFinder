@@ -1,5 +1,4 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from .rag_module import fact_check_crew, get_news
 from .models import RAGQuery, Admin
 from flask_login import login_required, current_user
