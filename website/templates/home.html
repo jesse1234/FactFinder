@@ -1,0 +1,57 @@
+
+
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1>Query Submission</h1>
+<form id="queryForm" method="POST">
+  <div class="form-group">
+    <label for="query">Enter your query:</label>
+    <input type="text" class="form-control" id="query" name="query" placeholder="Enter your query" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<div id="responseContainer" style="margin-top: 20px; display: none;">
+  <h3>Response:</h3>
+  <p><strong>Query:</strong> <span id="queryText"></span></p>
+  <p><strong>Context:</strong> <span id="contextText"></span></p>
+  <p><strong>Answer:</strong> <span id="answerText"></span></p>
+</div>
+
+<script>
+  const form = document.getElementById('queryForm');
+  const responseContainer = document.getElementById('responseContainer');
+  const queryText = document.getElementById('queryText');
+  const contextText = document.getElementById('contextText');
+  const answerText = document.getElementById('answerText');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const query = document.getElementById('query').value;
+
+    // Send the query to the backend
+    const response = await fetch('/rag/process-query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    const data = await response.json();
+
+    // Display the response
+    if (response.ok) {
+      queryText.textContent = data.query;
+      contextText.textContent = data.context;
+      answerText.textContent = JSON.stringify(data.output, null, 2);
+      responseContainer.style.display = 'block';
+    } else {
+      alert(`Error: ${data.error}`);
+    }
+  });
+</script>
+{% endblock %}

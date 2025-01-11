@@ -1,0 +1,283 @@
+<!-- templates/chat.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Fact Checker</title>
+    <style>
+        :root {
+            --primary-color: #FF1493;
+            --bg-dark: #2D2D2D;
+            --text-light: #FFFFFF;
+            --input-bg: #3D3D3D;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: var(--bg-dark);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .logo-icon {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            overflow-y: auto;
+            gap: 1.5rem;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            max-width: 80%;
+        }
+
+        .message.user {
+            margin-left: auto;
+        }
+
+        .avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .message-content {
+            background-color: var(--input-bg);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .user .message-content {
+            background-color: var(--primary-color);
+        }
+
+        .input-container {
+            padding: 1.5rem;
+            background-color: var(--bg-dark);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            background-color: var(--input-bg);
+            color: var(--text-light);
+            font-size: 1rem;
+            resize: none;
+            min-height: 50px;
+        }
+
+        .send-button {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .send-button:hover {
+            opacity: 0.9;
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* References/Sources section */
+        .references {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .reference-link {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .reference-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="logo">
+            <span class="logo-icon">●</span>
+            News Fact Checker
+        </a>
+        <div class="user-menu">
+            <!-- Add user menu/logout button here -->
+        </div>
+    </nav>
+
+    <div class="chat-container" id="chatContainer">
+        <!-- Messages will be inserted here -->
+    </div>
+
+    <div class="input-container">
+        <div class="input-wrapper">
+            <textarea 
+                class="message-input" 
+                placeholder="Type your message here..."
+                id="messageInput"
+            ></textarea>
+            <button class="send-button" id="sendButton">
+                Send
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+
+            // Handle message sending
+            async function sendMessage() {
+                const message = messageInput.value.trim();
+                if (!message) return;
+
+                // Add user message to chat
+                addMessage(message, true);
+                messageInput.value = '';
+
+                // Send to backend
+                try {
+                    const response = await fetch('/rag/process-query', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ query: message })
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        // Add bot response
+                        addMessage(data.output, false, data.context);
+                    } else {
+                        throw new Error(data.error || 'Failed to process query');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    addMessage('Sorry, there was an error processing your request.', false);
+                }
+            }
+
+            // Add message to chat
+            function addMessage(content, isUser, references = null) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user' : ''}`;
+
+                const avatar = document.createElement('div');
+                avatar.className = 'avatar';
+                avatar.textContent = isUser ? 'U' : 'A';
+
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.textContent = content;
+
+                // Add references if available
+                if (references && !isUser) {
+                    const refsDiv = document.createElement('div');
+                    refsDiv.className = 'references';
+                    refsDiv.innerHTML = formatReferences(references);
+                    messageContent.appendChild(refsDiv);
+                }
+
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                chatContainer.appendChild(messageDiv);
+
+                // Scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // Format references
+            function formatReferences(references) {
+                return references.split('-------------------')
+                    .filter(ref => ref.trim())
+                    .map(ref => {
+                        const matches = ref.match(/Title: (.*?)\nURL: (.*?)\n/);
+                        if (matches) {
+                            return `<a href="${matches[2]}" class="reference-link" target="_blank">${matches[1]}</a>`;
+                        }
+                        return '';
+                    })
+                    .join('<br>');
+            }
+
+            // Event listeners
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Auto-resize textarea
+            messageInput.addEventListener('input', () => {
+                messageInput.style.height = 'auto';
+                messageInput.style.height = messageInput.scrollHeight + 'px';
+            });
+        });
+    </script>
+</body>
+</html>
