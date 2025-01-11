@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from os import path
 import os
 from flask_login import login_manager, LoginManager
-from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -65,8 +64,6 @@ def create_app():
             return admin
         
         return User.query.get(int(id))
-
-    # jwt = JWTManager(app)
 
     return app 
 
