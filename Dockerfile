@@ -12,13 +12,14 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install system dependencies needed for mysqlclient and other packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     build-essential \
     libssl-dev \
     libffi-dev \
-    libmysqlclient-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    libmysqlclient-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -34,4 +35,3 @@ ENV PORT=8080
 
 # Command to run the Flask app
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "main:app"]
-
