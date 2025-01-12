@@ -1,5 +1,5 @@
 # Use the official lightweight Python image
-FROM python:3
+FROM python:3.9-slim
 
 # Set environment variables to prevent Python from writing .pyc files and buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1
@@ -8,11 +8,19 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy only requirements file to leverage Docker cache
-# COPY requirements.txt /app/
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libssl-dev \
+    libffi-dev \
+    libmysqlclient-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy only the requirements file first to leverage Docker caching
+COPY requirements.txt /app/
 
 # Install Python dependencies
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Copy the rest of the application code
 COPY . /app/
