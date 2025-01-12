@@ -1,5 +1,5 @@
 # Use the official lightweight Python image
-FROM python:3.9-slim
+FROM python:3
 
 # Set environment variables to prevent Python from writing .pyc files and buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1
@@ -8,22 +8,23 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies
+# Copy the requirements first
+COPY requirements.txt .
+
+# Install system dependencies needed for mysqlclient and other packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libssl-dev \
     libffi-dev \
     libmysqlclient-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Copy only the requirements file first to leverage Docker caching
-COPY requirements.txt /app/
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
-COPY . /app/
+COPY . .
 
 # Expose the port Flask will run on
 EXPOSE 8080
