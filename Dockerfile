@@ -1,5 +1,5 @@
 # Use the official lightweight Python image
-FROM python:3.11-slim
+FROM python:3
 
 # Set environment variables to prevent Python from writing .pyc files and buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1
@@ -10,15 +10,6 @@ WORKDIR /app
 
 # Copy only requirements file to leverage Docker cache
 COPY requirements.txt /app/
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    libffi-dev \
-    libssl-dev \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
