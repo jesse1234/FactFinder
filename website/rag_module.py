@@ -50,6 +50,12 @@ def scrape_content(link):
     try:
         response = requests.get(link)
         response.encoding = 'utf-8'
+
+        # Check for paywall indicators in meta tag
+        if 'paywall' in response.text.lower():
+            print(f"Paywall detected for {link}")
+            return None
+        
         soup = BeautifulSoup(response.text, 'html.parser')
 
         main_content = soup.find('main') or soup.find('article') or soup.find('body')
