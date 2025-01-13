@@ -1,37 +1,14 @@
-# Use the official lightweight Python image
-FROM python:3
+FROM python:3.10-slim
 
-# Set environment variables to prevent Python from writing .pyc files and buffering stdout/stderr
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED True
+# Copy local code to container image
+ENV APP_HOME /back-end
+WORKDIR $APP_HOME
+COPY . ./
 
-# Set the working directory in the container
-WORKDIR /app
-
-# Copy the requirements first
-COPY requirements.txt .
-
-# Install system dependencies needed for mysqlclient and other packages
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    build-essential \
-    libssl-dev \
-    libffi-dev \
-    libmysqlclient-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
-COPY . .
+COPY . ./
 
-# Expose the port Flask will run on
-EXPOSE 8080
-
-# Add Google Cloud Run environment variables
-ENV PORT=8080
-
-# Command to run the Flask app
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "main:app"]
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
