@@ -1,4 +1,4 @@
-# News Query and Fact-Check Application
+# FactFinder
 
 Welcome to FactFinder, a News Query and Fact-Check Application! This project is designed to combat misinformation online by leveraging agentic RAG (Retrieval-Augmented Generation) with CrewAI for the agents, LangChain, and OpenAI. The application uses Flask for the backend and Streamlit for the frontend.
 
